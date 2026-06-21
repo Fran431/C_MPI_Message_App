@@ -2,6 +2,7 @@
 #define COORDINATOR_H
 
 #include <stdbool.h>
+#include <mpi>
 
 #include "../include/protocol.h"
 
@@ -12,6 +13,6 @@ typedef struct {
 
 void run_coordinator(int process_num);
 
-void register_clients(UserEntry_t* table);
+void register_clients(UserEntry_t* table, int client_num);
 
 #endif
