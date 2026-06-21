@@ -1,6 +1,7 @@
-#include <mpi>
+#include <mpi.h>
 
-#include "../include/protocol.h"
+#include "protocol.h"
+#include "coordinator.h"
 
 int main(int argc, char **argv) {
     int rank, process_num;
@@ -10,7 +11,7 @@ int main(int argc, char **argv) {
     if (rank == COORDINATOR) {
         run_coordinator(process_num);
     } else {
-        run_client(rank);
+        //run_client(rank);
     }
 
     MPI_Finalize();
