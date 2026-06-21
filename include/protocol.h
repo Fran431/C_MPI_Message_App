@@ -9,7 +9,7 @@
 #define COORDINATOR 0
 
 
-typedef enum {
+typedef enum message_types{
     TAG_REGISTER,
     TAG_DIRECT,
     TAG_DIFFUSION,
@@ -18,7 +18,7 @@ typedef enum {
 } msg_types_t;
 
 
-typedef struct {
+typedef struct message{
     int   sender_rank;
     char  sender_name[MAX_NAME_LEN];
  
@@ -32,7 +32,7 @@ typedef struct {
 } Message_protocol_t;
 
 
-typedef struct {
+typedef struct entry{
     int  rank;
     char name[MAX_NAME_LEN];
 } Client_register_protocol_t;
