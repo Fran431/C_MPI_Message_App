@@ -2,6 +2,13 @@
 #include <stdio.h>
 
 
+void update_log(char* text){
+    FILE *file = fopen("../logs/coordinator_log.log", "a");
+    if (file) {
+        fprintf(file, "[%ld] %s\n", text);
+        fclose(file);
+    }
+}
 
 void register_clients(UserEntry_t* table, int client_num){
     int registered = 0;
@@ -12,11 +19,17 @@ void register_clients(UserEntry_t* table, int client_num){
                  MPI_COMM_WORLD, &status);
  
         int sender = msg.sender_rank;
-        strncpy(table[sender - 1].name, msg.sender_name, MAX_NAME_LEN);
-        table[sender - 1].active = true;
+        strncpy(table[sender].name, msg.sender_name, MAX_NAME_LEN);
+        table[sender].active = true;
         registered++;
+        
+        char line[128];
+        snprintf(line, sizeof(line), "REGISTERED Rank= %d Name= %s", r, table[sender].name);
+        update_log(line);
+        printf("Coordinator registered: rank %d -> %s\n", r, table[sender].name);
     }
 }
+
 
 
 void run_coordinator(int process_num){
@@ -27,9 +40,9 @@ void run_coordinator(int process_num){
     }
 
     int client_num = process_num - 1;
-    UserEntry_t* table[client_num];
+    UserEntry_t* table[process_num];
 
-        for (int i = 0; i < client_num; i++) {
+        for (int i = 0; i < process_num; i++) {
         table[i]->active = false;
         table[i]->name[0] = "";
     }
@@ -37,6 +50,8 @@ void run_coordinator(int process_num){
     printf("Coordinator waiting to register clients...\n");
 
     register_clients(table, client_num);
+
+    route_messages(client_num);
 
 }
 
