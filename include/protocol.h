@@ -29,7 +29,7 @@ typedef struct message{
     char  message_body[MAX_MSG_LEN];   
  
     long  timestamp;
-} Message_protocol_t;
+} Message_t;
 
 
 typedef struct entry{
