@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <mpi.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "protocol.h"
 
