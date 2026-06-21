@@ -31,4 +31,10 @@ typedef struct {
     long  timestamp;
 } Message_t;
 
+
+typedef struct {
+    int  rank;
+    char name[MAX_NAME_LEN];
+} Client_register_t;
+
 #endif
