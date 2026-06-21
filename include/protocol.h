@@ -15,7 +15,7 @@ typedef enum {
     TAG_DIFFUSION,
     TAG_DISCONNECT,
     TAG_ERROR
-} msg_type_t;
+} msg_types_t;
 
 
 typedef struct {
@@ -29,12 +29,12 @@ typedef struct {
     char  message_body[MAX_MSG_LEN];   
  
     long  timestamp;
-} Message_t;
+} Message_protocol_t;
 
 
 typedef struct {
     int  rank;
     char name[MAX_NAME_LEN];
-} Client_register_t;
+} Client_register_protocol_t;
 
 #endif
