@@ -22,7 +22,8 @@
 *.x86_64
 *.hex
 *.o
-client
+client_gui
+client_cli
 
 # Debug files
 *.dSYM/
@@ -44,3 +45,6 @@ dkms.conf
 
 #vscode files
 *.vscode
+
+#log files
+*.log
