@@ -2,7 +2,7 @@
 
 #include "protocol.h"
 #include "coordinator.h"
-#include "client.h"
+#include "client_cli.h"
 
 int main(int argc, char **argv) {
     int rank, process_num;
