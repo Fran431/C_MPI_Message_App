@@ -15,7 +15,7 @@ typedef enum message_types{
     TAG_DIFFUSION,
     TAG_DISCONNECT,
     TAG_ERROR
-} msg_types_t;
+} Msg_types_t;
 
 
 typedef struct message{
