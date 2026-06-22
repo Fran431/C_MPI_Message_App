@@ -1,5 +1,5 @@
 #include "../include/coordinator.h"
-#include <stdio.h>
+
 
 
 void update_log(char* text){
