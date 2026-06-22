@@ -10,7 +10,7 @@
 
 typedef struct {
     char name[MAX_NAME_LEN];
-    bool active;   
+    bool active;
 } UserEntry_t;
 
 void update_log(char* text);
@@ -20,7 +20,5 @@ void register_clients(UserEntry_t* table, int client_num);
 void route_messages(UserEntry_t* table, int client_num, int num_process);
 
 void run_coordinator(int num_process);
-
-
 
 #endif
