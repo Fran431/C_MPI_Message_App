@@ -3,7 +3,7 @@
 
 
 void update_log(char* text){
-    FILE *file = fopen("../logs/coordinator_log.log", "a");
+    FILE *file = fopen("logs/coordinator_log.log", "a");
     if (file) {
         fprintf(file, "%s\n", text);
         fclose(file);
@@ -43,17 +43,18 @@ void route_messages(UserEntry_t* table, int client_num, int num_process){
             case TAG_DIRECT: {
                 int receiver = msg.receiver_rank;
                 char line[256];
- 
-                if (table[receiver].active) {
+                
+                if (!table[receiver].active || msg.receiver_rank < 1 || msg.receiver_rank > num_process) {
+                    snprintf(line, sizeof(line),
+                            "Failed to send direct message from %d (%s) to rank %d (%s)",
+                            msg.sender_rank, msg.sender_name, receiver, table[receiver].name);
+                    printf("Receiver is offline.");
+                } else{
                     MPI_Send(&msg, sizeof(Message_t), MPI_BYTE, receiver,
                              TAG_DIRECT, MPI_COMM_WORLD);
                     snprintf(line, sizeof(line),
-                             "Direct message from rank %d (%s) to rank %d (%s)",
-                             msg.sender_rank, msg.sender_name, receiver, table[receiver].name);
-                } else{
-                snprintf(line, sizeof(line),
-                             "Failed to send direct message from %d (%s) to rank %d (%s)",
-                             msg.sender_rank, msg.sender_name, receiver, table[receiver].name);     
+                            "Direct message from rank %d (%s) to rank %d (%s)",
+                            msg.sender_rank, msg.sender_name, receiver, table[receiver].name);
                 }
                 update_log(line);
                 break;
@@ -79,7 +80,7 @@ void route_messages(UserEntry_t* table, int client_num, int num_process){
                 active_clients--;
  
                 char line[128];
-                snprintf(line, sizeof(line), "rank=%d (%s) disconnected. Clients left: %d",
+                snprintf(line, sizeof(line), "Rank = %d (%s) disconnected. Clients left: %d",
                          sender, table[sender].name, active_clients);
                 update_log(line);
                 break;
