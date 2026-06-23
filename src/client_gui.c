@@ -24,9 +24,25 @@ void get_diffusion_message(Message_t* msg, int rank, char* name, char* text){
     msg->message_length = strlen(msg->message_body);
 }
 
+void show_text(GTK_data_t *data, const char *text) {
+    //This iterates over a gtk buffer
+    GtkTextIter end;
+    //Position the index at the end
+    gtk_text_buffer_get_end_iter(data->chat_buffer, &end);
+    //Inserts the text
+    gtk_text_buffer_insert(data->chat_buffer, &end, text, -1);
+    //Adds newline at end of inserted text
+    gtk_text_buffer_insert(data->chat_buffer, &end, "\n", -1);
+    //Creates mark at end position
+    GtkTextMark *end_mark = gtk_text_buffer_create_mark(data->chat_buffer, NULL, &end, FALSE);
+    //scrolls to new mark (so that text remains on screen) 
+    gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(data->chat_view), end_mark);
+}
+
+
 
 //gpointer is a pointer but used by gtk functions
-void send_pressed( gpointer data_gtk) {
+void send_pressed(gpointer data_gtk) {
 
     GTK_data_t *data = (GTK_data_t *)data_gtk;
  
@@ -41,21 +57,23 @@ void send_pressed( gpointer data_gtk) {
     char line[MAX_MSG_LEN + MAX_NAME_LEN + 32];
  
     if (strlen(receiver_text) == 0) {
-        construir_difusion(&msg, data->rank, data->name, message_text);
+        get_diffusion_message(&msg, data->rank, data->name, message_text);
         enqueue(data->outgoing_queue, TAG_DIFFUSION, &msg);
-        snprintf(linea, sizeof(linea), "[Yo -> todos] %s", texto_mensaje);
+        snprintf(line, sizeof(line), "@todos %s", message_text);
+        show_text(data, line);
     } else {
-        int dest = atoi(texto_destino);
+        int dest = atoi(receiver_text);
         if (dest <= 0) {
-            agregar_linea_chat(ctx, "[Error local] El rank destino debe ser un numero positivo.");
+            printf("Invalid receiver rank.");
+            show_text(data, line);
             return;
         }
-        construir_directo(&msg, ctx->rank, ctx->nombre, dest, texto_mensaje);
-        cola_push(ctx->salida, TAG_MSG_DIRECTO, &msg);
-        snprintf(linea, sizeof(linea), "[Yo -> rank %d] %s", dest, texto_mensaje);
+        get_direct_message(&msg, data->rank, data->name, dest, message_text);
+        enqueue(data->outgoing_queue, TAG_DIRECT, &msg);
+        snprintf(line, sizeof(line), "@%d %s", dest, message_text);
     }
  
-    agregar_linea_chat(ctx, linea);
+    show_text(data, line);
     gtk_entry_set_text(GTK_ENTRY(ctx->entrada_mensaje), "");
     gtk_widget_grab_focus(ctx->entrada_mensaje);
 }
@@ -112,10 +130,8 @@ void *thread_gtk(void *arg_void) {
     gtk_box_pack_start(GTK_BOX(send_box), send_button, FALSE, FALSE, 0);
     
     //When the send button is pressed, a function is called to handle it
-    g_signal_connect(send_button, "clicked", G_CALLBACK(send_pressed), ctx);
-    g_signal_connect(data->message_entry, "activate", G_CALLBACK(send_pressed), ctx);
- 
-    //g_timeout_add(INTERVALO_POLL_GUI_MS, revisar_cola_entrada, ctx);
+    g_signal_connect(send_button, "clicked", G_CALLBACK(send_pressed), data);
+    g_signal_connect(data->message_entry, "activate", G_CALLBACK(send_pressed), data);
     
     gtk_widget_show_all(window);
     //This is to keep the event loop going

@@ -20,7 +20,15 @@ typedef struct gtk_data{
     GtkWidget* message_entry;
 } GTK_data_t;
 
-void send_pressed(GtkWidget *widget, gpointer user_data);
+void get_register_disconnect_msg(Message_t* msg, int rank, char* name);
+
+void get_direct_message(Message_t *msg, int rank, const char *name, int receiver, char *text);
+
+void get_diffusion_message(Message_t* msg, int rank, char* name, char* text);
+
+void show_text(GTK_data_t *data, const char *text)
+
+void send_pressed(gpointer user_data);
 
 void *thread_gtk(void *arg_void);
 
