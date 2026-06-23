@@ -20,6 +20,8 @@ typedef struct gtk_data{
     GtkWidget* message_entry;
 } GTK_data_t;
 
+void *hilo_gtk(void *arg_void);
+
 void run_GUI_client(int rank, int num_process);
  
 #endif
