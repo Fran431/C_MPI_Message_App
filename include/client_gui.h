@@ -1,7 +1,13 @@
 #ifndef CLIENT_GUI
 #define CLIENT_GUI
  
+#include <stdio.h>
+#include <mpi.h>
 
-void run_GUI_client(int rank, int num_procesos);
+
+#include "protocol.h"
+#include "queue.h"
+
+void run_GUI_client(int rank, int num_process);
  
 #endif
