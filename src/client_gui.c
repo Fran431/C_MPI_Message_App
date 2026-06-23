@@ -22,18 +22,24 @@ void run_GUI_client(int rank, int num_process) {
               TAG_REGISTER, MPI_COMM_WORLD);
  
     printf("Connected \"%s\" rank = %d.\n", name, rank);
-    printf("Available commands: @msg <rank> <message> | @diffusion <message> | @exit\n");
+
+    //printf("Available commands: @msg <rank> <message> | @diffusion <message> | @exit\n");
  
     Queue_t incoming_queue, outgoing_queue;
     initialize_queue(&incoming_queue);
     initialize_queue(&outgoing_queue);
  
-    Comm_thread_data_t comm_data = { rank, "", &outgoing_queue };
-    strncpy(comm_data.name, name, MAX_NAME_LEN - 1);
+    //Comm_thread_data_t comm_data = { rank, "", &outgoing_queue };
+    //strncpy(comm_data.name, name, MAX_NAME_LEN - 1);
+
+    GTK_data_t data_gtk;
+    data_gtk.rank = rank;
+    strncpy(data_gtk.name, name, MAX_NAME - 1);
+    data_gtk.incoming_queue = &incoming_queue;
+    data_gtk.outgoing_queue = &outgoing_queue;
  
-    pthread_t comm_thread, interface_thread;
-    pthread_create(&comm_thread, NULL, comm_work, &comm_data);
-    pthread_create(&interface_thread, NULL, interface_work, &incoming_queue);
+    pthread_t thread_gtk;
+    pthread_create(&thread_gtk, NULL, gtk_work, &data_gtk);
  
     int finished = 0;
     while (!finished) {
@@ -44,7 +50,7 @@ void run_GUI_client(int rank, int num_process) {
             MPI_Send(&outgoing_msg, sizeof(Message_t), MPI_BYTE, COORDINATOR,
                       outgoing_tag, MPI_COMM_WORLD);
             if (outgoing_tag == TAG_DISCONNECT) {
-                finished = 1;   
+                finished = 1;
             }
         }
         
