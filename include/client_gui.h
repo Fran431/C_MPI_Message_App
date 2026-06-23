@@ -26,9 +26,11 @@ void get_direct_message(Message_t *msg, int rank, const char *name, int receiver
 
 void get_diffusion_message(Message_t* msg, int rank, char* name, char* text);
 
-void show_text(GTK_data_t *data, const char *text)
+void show_text(GTK_data_t *data, const char *text);
 
 void send_pressed(gpointer user_data);
+
+void closed_window(gpointer data_gtk);
 
 void *thread_gtk(void *arg_void);
 

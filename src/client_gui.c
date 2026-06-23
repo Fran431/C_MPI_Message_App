@@ -78,6 +78,17 @@ void send_pressed(gpointer data_gtk) {
     gtk_widget_grab_focus(ctx->entrada_mensaje);
 }
 
+void closed_window(gpointer data_gtk) {
+    GTK_data_t *data = (GTK_data_t *)data_gtk;
+ 
+    Message_t msg;
+    get_register_disconnect_msg(&msg, data->rank, data->name);
+    enqueue(data->outgoing_queue, TAG_DISCONNECT, &msg);
+    //Returns from the main loop(main gtk loop)
+    gtk_main_quit();
+}
+
+
 
 
 void *thread_gtk(void *arg_void) {
@@ -91,12 +102,13 @@ void *thread_gtk(void *arg_void) {
     // Create a window, apparently, almost always it should be a top level one.
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), title);
-    gtk_window_set_default_size(GTK_WINDOW(ventana), 480, 400);
-    g_signal_connect(ventana, "destroy", G_CALLBACK(on_cerrar_ventana), ctx);
+    gtk_window_set_default_size(GTK_WINDOW(window), 480, 400);
+    //Handle window closing
+    g_signal_connect(window, "destroy", G_CALLBACK(closed_window), data);
     //Create a box
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
     gtk_container_set_border_width(GTK_CONTAINER(main_box), 8);
-    gtk_container_add(GTK_CONTAINER(ventana), main_box);
+    gtk_container_add(GTK_CONTAINER(window), main_box);
     
     //Usually arguments should be NULL, so that adjustments are set for me (yey)
     GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
@@ -132,6 +144,8 @@ void *thread_gtk(void *arg_void) {
     //When the send button is pressed, a function is called to handle it
     g_signal_connect(send_button, "clicked", G_CALLBACK(send_pressed), data);
     g_signal_connect(data->message_entry, "activate", G_CALLBACK(send_pressed), data);
+
+    check_incoming_queue(data);
     
     gtk_widget_show_all(window);
     //This is to keep the event loop going
