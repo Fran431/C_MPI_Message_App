@@ -14,7 +14,7 @@ typedef enum message_types{
     TAG_DIRECT,
     TAG_DIFFUSION,
     TAG_DISCONNECT,
-    TAG_ERROR
+    //TAG_ERROR
 } Msg_types_t;
 
 
@@ -23,12 +23,12 @@ typedef struct message{
     char  sender_name[MAX_NAME_LEN];
  
     int   receiver_rank;
-    char  list_name[MAX_NAME_LEN];
+    //char  list_name[MAX_NAME_LEN];
  
     int   message_length;
     char  message_body[MAX_MSG_LEN];   
  
-    long  timestamp;
+    //long  timestamp;
 } Message_t;
 
 
