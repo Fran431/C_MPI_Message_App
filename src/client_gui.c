@@ -26,6 +26,40 @@ void get_diffusion_message(Message_t* msg, int rank, char* name, const char* tex
     msg->message_length = strlen(msg->message_body);
 }
 
+
+void ask_username(char *name, int rank) {
+    //Shows small window with buttons
+    GtkWidget *dialog = gtk_dialog_new_with_buttons(
+        "Connect",
+        NULL,
+        GTK_DIALOG_MODAL,
+        "_Connect", GTK_RESPONSE_OK,
+        NULL);
+
+    GtkWidget *content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+    GtkWidget *label = gtk_label_new("Enter your username:");
+    GtkWidget *entry = gtk_entry_new();
+    //Pressing enter should push the button
+    gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
+    gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
+
+    gtk_box_pack_start(GTK_BOX(content), label, FALSE, FALSE, 6);
+    gtk_box_pack_start(GTK_BOX(content), entry, FALSE, FALSE, 6);
+    gtk_widget_show_all(dialog);
+
+    gtk_dialog_run(GTK_DIALOG(dialog));   /* blocks until "Connect" is pressed */
+
+    const char *text = gtk_entry_get_text(GTK_ENTRY(entry));
+    if (strlen(text) == 0) {
+        snprintf(name, MAX_NAME_LEN, "User-%d", rank);
+    } else {
+        strncpy(name, text, MAX_NAME_LEN - 1);
+        name[MAX_NAME_LEN - 1] = '\0';
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
 void show_text(GTK_data_t *data, const char *text) {
     //This iterates over a gtk buffer
     GtkTextIter end;
@@ -51,11 +85,11 @@ gboolean check_incoming_queue(gpointer data_gtk) {
     while (not_blocking_dequeue(data->incoming_queue, &tag, &msg)) {
         switch (tag) {
             case TAG_DIRECT:
-                snprintf(line, sizeof(line), "[%s -> mi] %s", msg.sender_name, msg.message_body);
+                snprintf(line, sizeof(line), "[%s] %s", msg.sender_name, msg.message_body);
                 show_text(data, line);
                 break;
             case TAG_DIFFUSION:
-                snprintf(line, sizeof(line), "[%s -> todos] %s", msg.sender_name, msg.message_body);
+                snprintf(line, sizeof(line), "[%s @everyone] %s", msg.sender_name, msg.message_body);
                 show_text(data, line);
                 break;
             default:
@@ -69,8 +103,8 @@ gboolean check_incoming_queue(gpointer data_gtk) {
 
 
 //gpointer is a pointer but used by gtk functions
-void send_pressed(gpointer data_gtk) {
-
+void send_pressed(GtkWidget *widget, gpointer data_gtk) {
+    (void)widget; 
     GTK_data_t *data = (GTK_data_t *)data_gtk;
  
     const char *receiver_text= gtk_entry_get_text(GTK_ENTRY(data->receiver_entry));
@@ -87,11 +121,11 @@ void send_pressed(gpointer data_gtk) {
         get_diffusion_message(&msg, data->rank, data->name, message_text);
         enqueue(data->outgoing_queue, TAG_DIFFUSION, &msg);
         snprintf(line, sizeof(line), "@todos %s", message_text);
-        show_text(data, line);
+        //show_text(data, line);
     } else {
         int dest = atoi(receiver_text);
-        if (dest <= 0) {
-            printf("Invalid receiver rank.");
+        if (dest <= 0 || dest  == data->rank) {
+            snprintf(line, sizeof(line), "Invalid receiver rank.");
             show_text(data, line);
             return;
         }
@@ -107,7 +141,8 @@ void send_pressed(gpointer data_gtk) {
     gtk_widget_grab_focus(data->message_entry);
 }
 
-void closed_window(gpointer data_gtk) {
+void closed_window(GtkWidget *widget, gpointer data_gtk) {
+    (void)widget; 
     GTK_data_t *data = (GTK_data_t *)data_gtk;
  
     Message_t msg;
@@ -125,6 +160,8 @@ void *gtk_work(void *arg_void) {
  
     gtk_init(NULL, NULL);
  
+    ask_username(data->name, data->rank); 
+
     char title[64];
     snprintf(title, sizeof(title), "Client - %s (rank %d)", data->name, data->rank);
     
@@ -157,7 +194,7 @@ void *gtk_work(void *arg_void) {
     
     //Text entry to tell which person will receive the message
     data->receiver_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(data->receiver_entry), "Send message to...");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(data->receiver_entry), "Send a message to...");
     gtk_entry_set_width_chars(GTK_ENTRY(data->receiver_entry), 14);
     gtk_box_pack_start(GTK_BOX(send_box), data->receiver_entry, FALSE, FALSE, 0);
     
@@ -174,7 +211,7 @@ void *gtk_work(void *arg_void) {
     g_signal_connect(send_button, "clicked", G_CALLBACK(send_pressed), data);
     g_signal_connect(data->message_entry, "activate", G_CALLBACK(send_pressed), data);
 
-    check_incoming_queue(data);
+    g_timeout_add(100, check_incoming_queue, data);
     
     gtk_widget_show_all(window);
     //This is to keep the event loop going

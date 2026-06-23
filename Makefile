@@ -46,7 +46,7 @@ $(BIN):
 $(LOG):
 	mkdir -p $(LOG)
  
-N ?= 5
+N ?= 3
  
 gui: $(BIN)client_gui
 	mpirun --allow-run-as-root --oversubscribe -np $(N) $(BIN)client_gui

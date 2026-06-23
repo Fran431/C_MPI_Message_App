@@ -28,13 +28,15 @@ void get_direct_message(Message_t *msg, int rank, const char *name, int receiver
 
 void get_diffusion_message(Message_t* msg, int rank, char* name, const char* text);
 
+void ask_username(char *out_name, int rank);
+
 void show_text(GTK_data_t *data, const char *text);
 
 gboolean check_incoming_queue(gpointer data_gtk);
 
-void send_pressed(gpointer user_data);
+void send_pressed(GtkWidget *widget, gpointer user_data);
 
-void closed_window(gpointer data_gtk);
+void closed_window(GtkWidget *widget, gpointer data_gtk);
 
 void *gtk_work(void *arg_void);
 
