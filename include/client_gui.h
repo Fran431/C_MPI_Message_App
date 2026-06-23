@@ -20,7 +20,6 @@ typedef struct gtk_data{
     GtkWidget* message_entry;
 } GTK_data_t;
 
-extern pthread_mutex_t output_mutex;
 
 void get_register_disconnect_msg(Message_t* msg, int rank, char* name);
 

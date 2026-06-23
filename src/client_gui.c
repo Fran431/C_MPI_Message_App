@@ -1,6 +1,5 @@
 #include "client_gui.h"
 
-pthread_mutex_t output_mutex;
 
 void get_register_disconnect_msg(Message_t* msg, int rank, char* name){
     memset(msg, 0, sizeof(Message_t));
@@ -225,7 +224,6 @@ void *gtk_work(void *arg_void) {
 
 void run_GUI_client(int rank) {
 
-    pthread_mutex_init(&output_mutex, NULL);
  
     char name[MAX_NAME_LEN];
     printf("Please write your username\n> ");
@@ -291,7 +289,6 @@ void run_GUI_client(int rank) {
  
     pthread_join(thread_gtk, NULL);
 
-    pthread_mutex_destroy(&output_mutex);
     destroy_queue(&incoming_queue);
     destroy_queue(&outgoing_queue);
  
