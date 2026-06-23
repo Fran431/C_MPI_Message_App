@@ -1,12 +1,68 @@
 #include "client_gui.h"
 
+void get_register_disconnect_msg(Message_t* msg, int rank, char* name){
+    memset(msg, 0, sizeof(Message_t));
+    msg->sender_rank = rank;
+    strncpy(msg->sender_name, name, MAX_NAME_LEN - 1);
+}
+
+void get_direct_message(Message_t *msg, int rank, const char *name, int receiver, char *text) {
+    memset(msg, 0, sizeof(Message_t));
+    msg->sender_rank = rank;
+    strncpy(msg->sender_name, name, MAX_NAME_LEN - 1);
+    msg->receiver_rank = receiver;
+    strncpy(msg->message_body, text, MAX_MSG_LEN - 1);
+    msg->message_length = strlen(msg->message_body);
+}
+
+void get_diffusion_message(Message_t* msg, int rank, char* name, char* text){
+    memset(msg, 0, sizeof(Message_t));
+    msg->sender_rank = rank;
+    strncpy(msg->sender_name, name, MAX_NAME_LEN - 1);
+    msg->receiver_rank = -1;
+    strncpy(msg->message_body, text, MAX_MSG_LEN - 1);
+    msg->message_length = strlen(msg->message_body);
+}
+
+
+//gpointer is a pointer but used by gtk functions
+void send_pressed( gpointer data_gtk) {
+
+    GTK_data_t *data = (GTK_data_t *)data_gtk;
+ 
+    char *receiver_text= gtk_entry_get_text(GTK_ENTRY(data->receiver_entry));
+    char *message_text = gtk_entry_get_text(GTK_ENTRY(data->entry_message));
+ 
+    if (strlen(message_text) == 0) {
+        return;
+    }
+ 
+    Message_t msg;
+    char line[MAX_MSG_LEN + MAX_NAME_LEN + 32];
+ 
+    if (strlen(receiver_text) == 0) {
+        construir_difusion(&msg, data->rank, data->name, message_text);
+        enqueue(data->outgoing_queue, TAG_DIFFUSION, &msg);
+        snprintf(linea, sizeof(linea), "[Yo -> todos] %s", texto_mensaje);
+    } else {
+        int dest = atoi(texto_destino);
+        if (dest <= 0) {
+            agregar_linea_chat(ctx, "[Error local] El rank destino debe ser un numero positivo.");
+            return;
+        }
+        construir_directo(&msg, ctx->rank, ctx->nombre, dest, texto_mensaje);
+        cola_push(ctx->salida, TAG_MSG_DIRECTO, &msg);
+        snprintf(linea, sizeof(linea), "[Yo -> rank %d] %s", dest, texto_mensaje);
+    }
+ 
+    agregar_linea_chat(ctx, linea);
+    gtk_entry_set_text(GTK_ENTRY(ctx->entrada_mensaje), "");
+    gtk_widget_grab_focus(ctx->entrada_mensaje);
+}
 
 
 
-
-
-
-void *hilo_gtk(void *arg_void) {
+void *thread_gtk(void *arg_void) {
     GTK_data_t *data = (GTK_data_t *)arg_void;
  
     gtk_init(NULL, NULL);
@@ -54,7 +110,8 @@ void *hilo_gtk(void *arg_void) {
     //To send message
     GtkWidget *send_button = gtk_button_new_with_label("Send");
     gtk_box_pack_start(GTK_BOX(send_box), send_button, FALSE, FALSE, 0);
- 
+    
+    //When the send button is pressed, a function is called to handle it
     g_signal_connect(send_button, "clicked", G_CALLBACK(send_pressed), ctx);
     g_signal_connect(data->message_entry, "activate", G_CALLBACK(send_pressed), ctx);
  
