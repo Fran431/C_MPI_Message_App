@@ -182,8 +182,7 @@ void *thread_gtk(void *arg_void) {
 
 
 
-void run_GUI_client(int rank, int num_process) {
-    (void)num_process;
+void run_GUI_client(int rank) {
 
     pthread_mutex_init(&output_mutex, NULL);
  

@@ -36,6 +36,6 @@ void closed_window(gpointer data_gtk);
 
 void *thread_gtk(void *arg_void);
 
-void run_GUI_client(int rank, int num_process);
+void run_GUI_client(int rank);
  
 #endif
