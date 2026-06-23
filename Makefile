@@ -29,7 +29,7 @@ $(BIN)client_gui: $(BIN) $(LOG) $(GUI_OBJS)
 	$(CC) $(CFLAGS) -o $(BIN)client_gui $(GUI_OBJS) $(GTK_LIBS)
  
 $(BIN)main_gui.o: $(SRC)main.c $(INCLUDE)coordinator.h $(INCLUDE)protocol.h $(INCLUDE)client_cli.h $(INCLUDE)client_gui.h
-	$(CC) $(CFLAGS) -DMODO_GUI -c $(SRC)main.c -o $(BIN)main_gui.o
+	$(CC) $(CFLAGS) $(GTK_CFLAGS) -DGUI -c $(SRC)main.c -o $(BIN)main_gui.o
  
 $(BIN)client_gui.o: $(SRC)client_gui.c $(INCLUDE)client_gui.h $(INCLUDE)protocol.h $(INCLUDE)queue.h
 	$(CC) $(CFLAGS) $(GTK_CFLAGS) -c $(SRC)client_gui.c -o $(BIN)client_gui.o

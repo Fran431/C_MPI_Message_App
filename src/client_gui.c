@@ -1,12 +1,14 @@
 #include "client_gui.h"
 
+pthread_mutex_t output_mutex;
+
 void get_register_disconnect_msg(Message_t* msg, int rank, char* name){
     memset(msg, 0, sizeof(Message_t));
     msg->sender_rank = rank;
     strncpy(msg->sender_name, name, MAX_NAME_LEN - 1);
 }
 
-void get_direct_message(Message_t *msg, int rank, const char *name, int receiver, char *text) {
+void get_direct_message(Message_t *msg, int rank, const char *name, int receiver, const char *text) {
     memset(msg, 0, sizeof(Message_t));
     msg->sender_rank = rank;
     strncpy(msg->sender_name, name, MAX_NAME_LEN - 1);
@@ -15,7 +17,7 @@ void get_direct_message(Message_t *msg, int rank, const char *name, int receiver
     msg->message_length = strlen(msg->message_body);
 }
 
-void get_diffusion_message(Message_t* msg, int rank, char* name, char* text){
+void get_diffusion_message(Message_t* msg, int rank, char* name, const char* text){
     memset(msg, 0, sizeof(Message_t));
     msg->sender_rank = rank;
     strncpy(msg->sender_name, name, MAX_NAME_LEN - 1);
@@ -44,7 +46,7 @@ gboolean check_incoming_queue(gpointer data_gtk) {
     GTK_data_t *data = (GTK_data_t *)data_gtk;
     Msg_types_t tag;
     Message_t msg;
-    char line[MAX_MSG_LEN + MAX_NAME + 32];
+    char line[MAX_MSG_LEN + MAX_NAME_LEN + 32];
  
     while (not_blocking_dequeue(data->incoming_queue, &tag, &msg)) {
         switch (tag) {
@@ -52,7 +54,7 @@ gboolean check_incoming_queue(gpointer data_gtk) {
                 snprintf(line, sizeof(line), "[%s -> mi] %s", msg.sender_name, msg.message_body);
                 show_text(data, line);
                 break;
-            case TAG_MSG_DIFUSION:
+            case TAG_DIFFUSION:
                 snprintf(line, sizeof(line), "[%s -> todos] %s", msg.sender_name, msg.message_body);
                 show_text(data, line);
                 break;
@@ -71,8 +73,8 @@ void send_pressed(gpointer data_gtk) {
 
     GTK_data_t *data = (GTK_data_t *)data_gtk;
  
-    char *receiver_text= gtk_entry_get_text(GTK_ENTRY(data->receiver_entry));
-    char *message_text = gtk_entry_get_text(GTK_ENTRY(data->entry_message));
+    const char *receiver_text= gtk_entry_get_text(GTK_ENTRY(data->receiver_entry));
+    const char *message_text = gtk_entry_get_text(GTK_ENTRY(data->message_entry));
  
     if (strlen(message_text) == 0) {
         return;
@@ -99,8 +101,10 @@ void send_pressed(gpointer data_gtk) {
     }
  
     show_text(data, line);
-    gtk_entry_set_text(GTK_ENTRY(ctx->entrada_mensaje), "");
-    gtk_widget_grab_focus(ctx->entrada_mensaje);
+    //To "clean" text inside data entry widget
+    gtk_entry_set_text(GTK_ENTRY(data->message_entry), "");
+    //So that keyboard writes here, in data entry widget
+    gtk_widget_grab_focus(data->message_entry);
 }
 
 void closed_window(gpointer data_gtk) {
@@ -116,7 +120,7 @@ void closed_window(gpointer data_gtk) {
 
 
 
-void *thread_gtk(void *arg_void) {
+void *gtk_work(void *arg_void) {
     GTK_data_t *data = (GTK_data_t *)arg_void;
  
     gtk_init(NULL, NULL);
@@ -215,7 +219,7 @@ void run_GUI_client(int rank) {
 
     GTK_data_t data_gtk;
     data_gtk.rank = rank;
-    strncpy(data_gtk.name, name, MAX_NAME - 1);
+    strncpy(data_gtk.name, name, MAX_NAME_LEN - 1);
     data_gtk.incoming_queue = &incoming_queue;
     data_gtk.outgoing_queue = &outgoing_queue;
  
@@ -248,8 +252,7 @@ void run_GUI_client(int rank) {
  
     queue_close(&incoming_queue);
  
-    pthread_join(comm_thread, NULL);
-    pthread_join(interface_thread, NULL);
+    pthread_join(thread_gtk, NULL);
 
     pthread_mutex_destroy(&output_mutex);
     destroy_queue(&incoming_queue);
