@@ -40,6 +40,31 @@ void show_text(GTK_data_t *data, const char *text) {
 }
 
 
+gboolean check_incoming_queue(gpointer data_gtk) {
+    GTK_data_t *data = (GTK_data_t *)data_gtk;
+    Msg_types_t tag;
+    Message_t msg;
+    char line[MAX_MSG_LEN + MAX_NAME + 32];
+ 
+    while (not_blocking_dequeue(data->incoming_queue, &tag, &msg)) {
+        switch (tag) {
+            case TAG_DIRECT:
+                snprintf(line, sizeof(line), "[%s -> mi] %s", msg.sender_name, msg.message_body);
+                show_text(data, line);
+                break;
+            case TAG_MSG_DIFUSION:
+                snprintf(line, sizeof(line), "[%s -> todos] %s", msg.sender_name, msg.message_body);
+                show_text(data, line);
+                break;
+            default:
+                break;
+        }
+    }
+    //When no more things are left in queue
+    return TRUE;
+}
+
+
 
 //gpointer is a pointer but used by gtk functions
 void send_pressed(gpointer data_gtk) {

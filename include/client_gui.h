@@ -28,6 +28,8 @@ void get_diffusion_message(Message_t* msg, int rank, char* name, char* text);
 
 void show_text(GTK_data_t *data, const char *text);
 
+gboolean check_incoming_queue(gpointer data_gtk);
+
 void send_pressed(gpointer user_data);
 
 void closed_window(gpointer data_gtk);
