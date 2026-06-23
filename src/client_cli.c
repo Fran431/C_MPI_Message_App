@@ -102,8 +102,7 @@ void* interface_work(void *arg) {
 }
 
 
-void run_client(int rank, int num_process) {
-    (void)num_process;
+void run_client(int rank) {
 
     pthread_mutex_init(&output_mutex, NULL);
  

@@ -26,6 +26,6 @@ void *comm_work(void *arg);
 
 void* interface_work(void *arg);
 
-void run_client(int rank, int num_process);
+void run_client(int rank);
 
 #endif
